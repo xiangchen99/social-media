@@ -1,39 +1,38 @@
-name: Prettier Code Formatter
+name: CI/CD Workflow
 
 on:
   push:
     branches:
       - main
       - dev
-  pull_request:
-    branches:
-      - main
-      - dev
 
 jobs:
-  prettier:
+  build-frontend:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          # This is important for the workflow to be able to push changes back
-          persist-credentials: false
-          fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18' # Or your desired Node.js version
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Install Frontend Dependencies
+        run: bun install
+        working-directory: ./frontend  # Specifies the correct directory
 
-      - name: Run Prettier
-        run: npx prettier --write .
+      - name: Build Frontend
+        run: bun run build
+        working-directory: ./frontend # Specifies the correct directory
 
-      - name: Commit and Push Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: '🎨 Apply Prettier formatting'
-          branch: ${{ github.head_ref }}
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install Backend Dependencies
+        run: bun install
+        working-directory: ./backend  # Specifies the correct directory
