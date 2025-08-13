@@ -1,38 +1,14 @@
-name: CI/CD Workflow
-
-on:
-  push:
-    branches:
-      - main
-      - dev
-
-jobs:
-  build-frontend:
+lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
-
-      - name: Install Frontend Dependencies
-        run: bun install
-        working-directory: ./frontend  # Specifies the correct directory
-
-      - name: Build Frontend
-        run: bun run build
-        working-directory: ./frontend # Specifies the correct directory
-
-  build-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Install Backend Dependencies
-        run: bun install
-        working-directory: ./backend  # Specifies the correct directory
+      - name: Install Dependencies
+        run: |
+          bun install --cwd frontend
+          bun install --cwd backend
+      - name: Run Prettier
+        run: |
+          ./node_modules/.bin/prettier --write .
