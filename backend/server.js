@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors";
 import authRouter from "./routes/auth.js"; // Import the router
 import postsRouter from "./routes/posts.js"; // Import the new router
 
@@ -9,6 +10,12 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Add CORS middleware
+app.use(cors({
+  origin: 'http://localhost:3000', // Your frontend URL
+  credentials: true
+}));
 
 // Middleware for parsing JSON bodies
 app.use(express.json());
