@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
+import CommentList from './CommentList';    // Import CommentList
+import CommentInput from './CommentInput';  // Import CommentInput
+
 
 const Profile = () => {
   const { id } = useParams(); // Get the user ID from the URL parameter
@@ -11,6 +14,8 @@ const Profile = () => {
 
   const currentUserId = localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).user.id : null;
   const [isFollowing, setIsFollowing] = useState(false); // New state for follow status
+  const [expandedComments, setExpandedComments] = useState({}); // State to track which post's comments are open
+
 
   // Function to fetch user details
   const fetchUserDetails = useCallback(async () => {
@@ -100,7 +105,7 @@ const Profile = () => {
     }
   };
 
-  // New handler for follow/unfollow
+  // Handler for follow/unfollow
   const handleFollowToggle = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -128,6 +133,22 @@ const Profile = () => {
         alert('Network error. Could not update follow status.');
       }
     }
+  };
+
+  // New functions for comments (similar to Feed.jsx)
+  const handleCommentToggle = async (postId) => {
+    setExpandedComments(prevState => ({
+      ...prevState,
+      [postId]: !prevState[postId]
+    }));
+  };
+
+  const handleCommentAdded = () => {
+      fetchUserPosts(); // Re-fetch user posts to ensure comment counts are updated
+  };
+
+  const handleCommentDeleted = () => {
+      fetchUserPosts(); // Re-fetch user posts to ensure comment counts are updated
   };
 
 
@@ -211,13 +232,79 @@ const Profile = () => {
                   Delete
                 </button>
               )}
+              <button
+                onClick={() => handleCommentToggle(post._id)}
+                style={{
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 12px',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '0.9em',
+                  marginLeft: 'auto'
+                }}
+              >
+                {expandedComments[post._id] ? 'Hide Comments' : 'View Comments'}
+              </button>
             </div>
+            {expandedComments[post._id] && (
+              <div style={{ marginTop: '15px' }}>
+                <CommentsSectionWrapper postId={post._id} onCommentAdded={handleCommentAdded} onCommentDeleted={handleCommentDeleted} currentUserId={currentUserId} />
+              </div>
+            )}
           </div>
         ))
       ) : (
         <p style={{ textAlign: 'center', color: '#888' }}>{user.username} has no posts yet.</p>
       )}
     </div>
+  );
+};
+
+// Re-using the helper component for comments
+const CommentsSectionWrapper = ({ postId, onCommentAdded, onCommentDeleted, currentUserId }) => {
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+
+  const fetchComments = useCallback(async () => {
+    setCommentsLoading(true);
+    try {
+      const res = await axios.get(`/api/posts/${postId}/comments`);
+      setComments(res.data);
+    } catch (err) {
+      console.error('Error fetching comments:', err);
+      setComments([]);
+    } finally {
+      setCommentsLoading(false);
+    }
+  }, [postId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
+
+  const handleOptimisticCommentDelete = (deletedCommentId) => {
+    setComments(prevComments => prevComments.filter(comment => comment._id !== deletedCommentId));
+    onCommentDeleted(); // Notify parent to potentially re-fetch if needed for accurate counts
+  };
+
+  const handleOptimisticCommentAdd = (newComment) => {
+    // Add the newly created comment to the list
+    setComments(prevComments => [...prevComments, newComment]);
+    onCommentAdded(newComment); // Notify parent to update count or overall post
+  };
+
+
+  if (commentsLoading) {
+    return <div style={{ textAlign: 'center', padding: '10px', fontSize: '0.9em' }}>Loading comments...</div>;
+  }
+
+  return (
+    <>
+      <CommentList comments={comments} postId={postId} onCommentDeleted={handleOptimisticCommentDelete} currentUserId={currentUserId} />
+      {currentUserId && <CommentInput postId={postId} onCommentAdded={handleOptimisticCommentAdd} />}
+    </>
   );
 };
 

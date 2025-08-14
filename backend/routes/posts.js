@@ -1,6 +1,8 @@
 import express from "express";
 import Post from "../models/Post.js";
 import auth from "../middleware/auth.js"; // Import the middleware
+import Comment from "../models/Comment.js"; // Import the Comment model
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -100,6 +102,71 @@ router.get('/user/:user_id', async (req, res) => {
     }
 
     res.json(posts);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   POST /api/posts/:post_id/comments
+// @desc    Add a comment to a post
+// @access  Private
+router.post('/:post_id/comments', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.post_id);
+    if (!post) {
+      return res.status(404).json({ msg: 'Post not found' });
+    }
+
+    const newComment = new Comment({
+      text: req.body.text,
+      user: req.user.id,
+      post: req.params.post_id,
+    });
+
+    const comment = await newComment.save();
+    await comment.populate('user', 'username'); // Populate user for response
+    res.status(201).json(comment);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET /api/posts/:post_id/comments
+// @desc    Get all comments for a post
+// @access  Public
+router.get('/:post_id/comments', async (req, res) => {
+  try {
+    const comments = await Comment.find({ post: req.params.post_id })
+      .populate('user', 'username') // Populate user details for each comment
+      .sort({ createdAt: 1 }); // Sort by oldest first
+
+    res.json(comments);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   DELETE /api/posts/:post_id/comments/:comment_id
+// @desc    Delete a comment
+// @access  Private
+router.delete('/:post_id/comments/:comment_id', auth, async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.comment_id);
+
+    if (!comment) {
+      return res.status(404).json({ msg: 'Comment not found' });
+    }
+
+    // Check if user is the owner of the comment
+    if (comment.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'User not authorized to delete this comment' });
+    }
+
+    await Comment.deleteOne({ _id: req.params.comment_id });
+    res.json({ msg: 'Comment removed' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

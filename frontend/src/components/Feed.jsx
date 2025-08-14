@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import CreatePost from './CreatePost'; // Import CreatePost
+import CreatePost from './CreatePost';
+import CommentList from './CommentList'; // Import CommentList
+import CommentInput from './CommentInput'; // Import CommentInput
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const currentUserId = localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).user.id : null;
+  const [expandedComments, setExpandedComments] = useState({}); // State to track which post's comments are open
 
 
   // useCallback to memoize fetchPosts to prevent unnecessary re-renders in useEffect
@@ -82,6 +85,44 @@ const Feed = () => {
     }
   };
 
+  // New functions for comments
+  const fetchCommentsForPost = useCallback(async (postId) => {
+    try {
+      const res = await axios.get(`/api/posts/${postId}/comments`);
+      return res.data;
+    } catch (err) {
+      console.error('Error fetching comments for post:', postId, err);
+      return []; // Return empty array on error
+    }
+  }, []);
+
+  const handleCommentToggle = async (postId) => {
+    setExpandedComments(prevState => ({
+      ...prevState,
+      [postId]: !prevState[postId]
+    }));
+  };
+
+  const handleCommentAdded = (newComment) => {
+    // Optimistically update the comments for the specific post
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post._id === newComment.post
+          ? { ...post, comments: post.comments ? [...post.comments, newComment] : [newComment] }
+          : post
+      )
+    );
+    // Re-fetch comments if the section is open to ensure accurate count/display
+    if (expandedComments[newComment.post]) {
+        fetchPosts(); // A full refetch of posts will ensure comment counts are updated too
+    }
+  };
+
+  const handleCommentDeleted = () => {
+      fetchPosts(); // A full refetch of posts will ensure comment counts are updated too
+  };
+
+
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '20px' }}>Loading posts...</div>;
   }
@@ -141,13 +182,79 @@ const Feed = () => {
                   Delete
                 </button>
               )}
+               <button
+                onClick={() => handleCommentToggle(post._id)}
+                style={{
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 12px',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '0.9em',
+                  marginLeft: 'auto' // Push to the right
+                }}
+              >
+                {expandedComments[post._id] ? 'Hide Comments' : 'View Comments'}
+              </button>
             </div>
+            {expandedComments[post._id] && (
+              <div style={{ marginTop: '15px' }}>
+                {/* We'll pass fetchCommentsForPost here to get comments dynamically */}
+                <CommentsSectionWrapper postId={post._id} onCommentAdded={handleCommentAdded} onCommentDeleted={handleCommentDeleted} currentUserId={currentUserId} />
+              </div>
+            )}
           </div>
         ))
       ) : (
         <p style={{ textAlign: 'center', color: '#888' }}>No posts to display. Be the first to create one!</p>
       )}
     </div>
+  );
+};
+
+// Helper component to manage comment state and fetching
+const CommentsSectionWrapper = ({ postId, onCommentAdded, onCommentDeleted, currentUserId }) => {
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+
+  const fetchComments = useCallback(async () => {
+    setCommentsLoading(true);
+    try {
+      const res = await axios.get(`/api/posts/${postId}/comments`);
+      setComments(res.data);
+    } catch (err) {
+      console.error('Error fetching comments:', err);
+      setComments([]);
+    } finally {
+      setCommentsLoading(false);
+    }
+  }, [postId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
+
+  const handleOptimisticCommentDelete = (deletedCommentId) => {
+    setComments(prevComments => prevComments.filter(comment => comment._id !== deletedCommentId));
+    onCommentDeleted(); // Notify parent to potentially re-fetch if needed for accurate counts
+  };
+
+  const handleOptimisticCommentAdd = (newComment) => {
+    // Add the newly created comment to the list
+    setComments(prevComments => [...prevComments, newComment]);
+    onCommentAdded(newComment); // Notify parent to update count or overall post
+  };
+
+  if (commentsLoading) {
+    return <div style={{ textAlign: 'center', padding: '10px', fontSize: '0.9em' }}>Loading comments...</div>;
+  }
+
+  return (
+    <>
+      <CommentList comments={comments} postId={postId} onCommentDeleted={handleOptimisticCommentDelete} currentUserId={currentUserId} />
+      {currentUserId && <CommentInput postId={postId} onCommentAdded={handleOptimisticCommentAdd} />}
+    </>
   );
 };
 
