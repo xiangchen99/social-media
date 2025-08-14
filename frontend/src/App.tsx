@@ -6,6 +6,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Feed from './components/Feed'; // This is now your main protected view
 import Profile from './components/Profile'; // Import the new Profile component
 import LogoutButton from './components/LogoutButton'; // Import LogoutButton
+import HomePage from './components/HomePage'; // Import HomePage component
 
 // Configure Axios base URL
 import axios from 'axios';
@@ -41,11 +42,12 @@ const App = () => {
       </nav>
 
       <Routes>
-        <Route path="/" element={token ? <PrivateRoute><Feed /></PrivateRoute> : <Login />} /> {/* Default route */}
+        <Route path="/" element={token ? <PrivateRoute><Feed /></PrivateRoute> : <HomePage />} /> {/* Default route */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<PrivateRoute><Feed /></PrivateRoute>} />
         <Route path="/profile/:id" element={<PrivateRoute><Profile /></PrivateRoute>} /> {/* New profile route */}
+        <Route path="/homepage" element={<HomePage />} />
       </Routes>
     </BrowserRouter>
   );
