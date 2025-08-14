@@ -22,4 +22,20 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/posts
+// @desc    Get all posts
+// @access  Public
+router.get('/', async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .populate('user', 'username') // 'user' is the field, 'username' is what to retrieve
+      .sort({ createdAt: -1 });
+      
+    res.json(posts);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 export default router;

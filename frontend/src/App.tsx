@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Register from './components/Register';
 import Login from './components/Login';
 import PrivateRoute from './components/PrivateRoute';
-import Dashboard from './components/Dashboard'; // Create this component for the protected page
+import Feed from './components/Feed';
 
 // Configure Axios base URL
 import axios from 'axios';
@@ -28,7 +28,7 @@ const App = () => {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><Feed /></PrivateRoute>} />
       </Routes>
     </BrowserRouter>
   );
