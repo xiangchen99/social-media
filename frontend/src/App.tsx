@@ -9,7 +9,7 @@ import LogoutButton from './components/LogoutButton'; // Import LogoutButton
 
 // Configure Axios base URL
 import axios from 'axios';
-axios.defaults.baseURL = 'http://localhost:3001';
+axios.defaults.baseURL = 'https://social-media-chi-black.vercel.app';
 
 const App = () => {
   const token = localStorage.getItem('token'); // Check if a token exists for conditional rendering
