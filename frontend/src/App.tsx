@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Register from './components/Register';
 import Login from './components/Login';
@@ -15,7 +15,25 @@ axios.defaults.baseURL = "https://social-media-chi-black.vercel.app";
 //axios.defaults.baseURL = "http://localhost:3001"; // Use this for local
 
 const App = () => {
-  const token = localStorage.getItem('token'); // Check if a token exists for conditional rendering
+  const [token, setToken] = useState(localStorage.getItem('token')); // Use state for token
+
+  // Listen for storage changes to update token state
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setToken(localStorage.getItem('token'));
+    };
+
+    // Listen for custom storage events
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for a custom event we'll dispatch when token changes
+    window.addEventListener('tokenChanged', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('tokenChanged', handleStorageChange);
+    };
+  }, []);
 
   return (
     <BrowserRouter>

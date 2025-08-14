@@ -21,6 +21,10 @@ const Login = () => {
       const res = await axios.post('/api/auth/login', formData);
       // Save the token to local storage
       localStorage.setItem('token', res.data.token);
+      
+      // Dispatch custom event to notify App component
+      window.dispatchEvent(new Event('tokenChanged'));
+      
       console.log('Login successful:', res.data.token);
       navigate('/dashboard'); // Redirect to a protected page
     } catch (err) {

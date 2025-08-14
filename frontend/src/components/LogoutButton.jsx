@@ -6,6 +6,10 @@ const LogoutButton = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token'); // Remove the JWT token
+    
+    // Dispatch custom event to notify App component
+    window.dispatchEvent(new Event('tokenChanged'));
+    
     navigate('/login'); // Redirect to login page
     window.location.reload(); // Optional: force a refresh to clear all state
   };
