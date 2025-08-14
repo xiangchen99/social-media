@@ -11,7 +11,7 @@ const HomePage = () => {
             <h1> Welcome to Big Brother Social Media!</h1>
             <h3>We are the premiere no censorship social media with no tracking whatsoever (maybe)</h3>
 
-            <h2>Register and Login to get started and see trending posts on the platform!</h2>
+            <h2>Register and Login to see your hidden message I left you on the platform</h2>
         </div>
     );
 };

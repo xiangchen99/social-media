@@ -20,7 +20,7 @@ const App = () => {
       <nav style={{ backgroundColor: '#333', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex' }}>
           <li style={{ marginRight: '20px' }}>
-            <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Home</Link>
+            <Link to="/homepage" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Home</Link>
           </li>
           {!token && ( // Show Register/Login if not logged in
             <>
