@@ -10,17 +10,24 @@ const Profile = () => {
   const [error, setError] = useState(null);
 
   const currentUserId = localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).user.id : null;
+  const [isFollowing, setIsFollowing] = useState(false); // New state for follow status
 
   // Function to fetch user details
   const fetchUserDetails = useCallback(async () => {
     try {
       const res = await axios.get(`/api/users/${id}`);
       setUser(res.data);
+      // Set initial follow status
+      if (currentUserId && res.data.followers) {
+        setIsFollowing(res.data.followers.some(follower => follower.user._id === currentUserId));
+      } else {
+        setIsFollowing(false);
+      }
     } catch (err) {
       setError('Failed to fetch user profile.');
       console.error('Error fetching user:', err);
     }
-  }, [id]);
+  }, [id, currentUserId]);
 
   // Function to fetch user's posts
   const fetchUserPosts = useCallback(async () => {
@@ -93,6 +100,36 @@ const Profile = () => {
     }
   };
 
+  // New handler for follow/unfollow
+  const handleFollowToggle = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You must be logged in to follow/unfollow.');
+        return;
+      }
+      if (currentUserId === id) {
+          alert("You cannot follow/unfollow yourself.");
+          return;
+      }
+
+      const config = {
+        headers: {
+          'x-auth-token': token,
+        },
+      };
+      await axios.put(`/api/users/follow/${id}`, {}, config);
+      fetchUserDetails(); // Refresh user details to update follow counts and button state
+    } catch (err) {
+      console.error('Error toggling follow:', err);
+      if (err.response) {
+        alert(err.response.data.msg || 'Failed to update follow status.');
+      } else {
+        alert('Network error. Could not update follow status.');
+      }
+    }
+  };
+
 
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '20px' }}>Loading profile...</div>;
@@ -111,8 +148,26 @@ const Profile = () => {
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
         <h1 style={{ marginBottom: '10px' }}>{user.username}'s Profile</h1>
         <p style={{ color: '#555' }}>Email: {user.email}</p>
-        {/* Add more user details like bio, profile picture once you add them to the model */}
-        {/* <p>Bio: {user.bio || 'No bio yet.'}</p> */}
+        <p style={{ color: '#555' }}>Followers: {user.followers ? user.followers.length : 0}</p>
+        <p style={{ color: '#555' }}>Following: {user.following ? user.following.length : 0}</p>
+
+        {currentUserId && currentUserId !== id && ( // Only show button if logged in and not on own profile
+          <button
+            onClick={handleFollowToggle}
+            style={{
+              backgroundColor: isFollowing ? '#f44336' : '#007bff',
+              color: 'white',
+              padding: '10px 15px',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '1em',
+              marginTop: '15px'
+            }}
+          >
+            {isFollowing ? 'Unfollow' : 'Follow'}
+          </button>
+        )}
       </div>
 
       <h2 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px' }}>Posts by {user.username}</h2>

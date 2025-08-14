@@ -10,7 +10,9 @@ import HomePage from './components/HomePage'; // Import HomePage component
 
 // Configure Axios base URL
 import axios from 'axios';
-axios.defaults.baseURL = 'https://social-media-chi-black.vercel.app';
+axios.defaults.baseURL = "https://social-media-chi-black.vercel.app";
+// If you are running the backend locally, you can uncomment the line below
+//axios.defaults.baseURL = "http://localhost:3001"; // Use this for local
 
 const App = () => {
   const token = localStorage.getItem('token'); // Check if a token exists for conditional rendering
