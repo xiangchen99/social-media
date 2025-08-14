@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import authRouter from "./routes/auth.js"; // Import the router
 import postsRouter from "./routes/posts.js"; // Import the new router
+import usersRouter from "./routes/users.js"; // Import the users router
 
 // Load environment variables from .env file
 dotenv.config();
@@ -29,6 +30,7 @@ mongoose
 // Use the authentication router for API routes
 app.use("/api/auth", authRouter);
 app.use("/api/posts", postsRouter); // Use the posts router
+app.use('/api/users', usersRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

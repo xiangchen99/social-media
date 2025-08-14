@@ -1,33 +1,44 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
-import CreatePost from './CreatePost'; // Import CreatePost
+import { useParams, Link } from 'react-router-dom';
 
-const Feed = () => {
+const Profile = () => {
+  const { id } = useParams(); // Get the user ID from the URL parameter
+  const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const currentUserId = localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).user.id : null;
 
-
-  // useCallback to memoize fetchPosts to prevent unnecessary re-renders in useEffect
-  const fetchPosts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // Function to fetch user details
+  const fetchUserDetails = useCallback(async () => {
     try {
-      const res = await axios.get('/api/posts');
+      const res = await axios.get(`/api/users/${id}`);
+      setUser(res.data);
+    } catch (err) {
+      setError('Failed to fetch user profile.');
+      console.error('Error fetching user:', err);
+    }
+  }, [id]);
+
+  // Function to fetch user's posts
+  const fetchUserPosts = useCallback(async () => {
+    try {
+      const res = await axios.get(`/api/posts/user/${id}`);
       setPosts(res.data);
     } catch (err) {
-      setError('Failed to fetch posts. Please try again later.');
-      console.error('Error fetching posts:', err);
-    } finally {
-      setLoading(false);
+      setError('Failed to fetch user posts.');
+      console.error('Error fetching user posts:', err);
     }
-  }, []); // No dependencies, so it only re-creates if nothing changes
+  }, [id]);
 
   useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]); // Rerun when fetchPosts changes
+    setLoading(true);
+    // Fetch both user details and posts concurrently
+    Promise.all([fetchUserDetails(), fetchUserPosts()])
+      .finally(() => setLoading(false));
+  }, [id, fetchUserDetails, fetchUserPosts]); // Re-run when ID or fetch functions change
 
   const handleLike = async (postId) => {
     try {
@@ -43,7 +54,7 @@ const Feed = () => {
         },
       };
       await axios.put(`/api/posts/like/${postId}`, {}, config);
-      fetchPosts(); // Refresh posts to show updated likes
+      fetchUserPosts(); // Refresh posts to show updated likes
     } catch (err) {
       console.error('Error liking post:', err);
       if (err.response) {
@@ -71,7 +82,7 @@ const Feed = () => {
         },
       };
       await axios.delete(`/api/posts/${postId}`, config);
-      fetchPosts(); // Refresh posts to remove the deleted one
+      fetchUserPosts(); // Refresh posts to remove the deleted one
     } catch (err) {
       console.error('Error deleting post:', err);
       if (err.response) {
@@ -82,29 +93,33 @@ const Feed = () => {
     }
   };
 
+
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '20px' }}>Loading posts...</div>;
+    return <div style={{ textAlign: 'center', padding: '20px' }}>Loading profile...</div>;
   }
 
   if (error) {
     return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>{error}</div>;
   }
 
+  if (!user) {
+    return <div style={{ textAlign: 'center', padding: '20px' }}>User not found.</div>;
+  }
+
   return (
     <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #eee', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-      <h1>Public Feed</h1>
-      {currentUserId && <CreatePost onPostCreated={fetchPosts} />} {/* Render CreatePost if logged in */}
+      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <h1 style={{ marginBottom: '10px' }}>{user.username}'s Profile</h1>
+        <p style={{ color: '#555' }}>Email: {user.email}</p>
+        {/* Add more user details like bio, profile picture once you add them to the model */}
+        {/* <p>Bio: {user.bio || 'No bio yet.'}</p> */}
+      </div>
 
+      <h2 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px' }}>Posts by {user.username}</h2>
       {posts.length > 0 ? (
         posts.map((post) => (
           <div key={post._id} style={{ border: '1px solid #ddd', margin: '15px 0', padding: '15px', borderRadius: '8px', backgroundColor: 'white', position: 'relative' }}>
-            {post.user && (
-              <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                <Link to={`/profile/${post.user._id}`} style={{ textDecoration: 'none', color: '#007bff' }}>
-                  @{post.user.username}
-                </Link>
-              </p>
-            )}
+            {/* Note: In profile, post.user is already the profile owner, so no link needed */}
             <p style={{ fontSize: '1.1em', lineHeight: '1.5' }}>{post.text}</p>
             <p style={{ fontSize: '0.8em', color: '#666', marginTop: '10px' }}>
               Posted on: {new Date(post.createdAt).toLocaleString()}
@@ -145,10 +160,10 @@ const Feed = () => {
           </div>
         ))
       ) : (
-        <p style={{ textAlign: 'center', color: '#888' }}>No posts to display. Be the first to create one!</p>
+        <p style={{ textAlign: 'center', color: '#888' }}>{user.username} has no posts yet.</p>
       )}
     </div>
   );
 };
 
-export default Feed;
+export default Profile;
