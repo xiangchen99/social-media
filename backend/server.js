@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3001;
 
 // Add CORS middleware
 app.use(cors({
-  origin: 'http://localhost:3000', // Your frontend URL
+  origin: ['http://localhost:3000', "https://bigbro.xiang-chen.com"]// Your frontend URL
   credentials: true
 }));
 
