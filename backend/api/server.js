@@ -27,6 +27,11 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+  // Root route
+  app.get("/", (req, res) => {
+    res.send("Hello World");
+  });
+
 // Use the authentication router for API routes
 app.use("/api/auth", authRouter);
 app.use("/api/posts", postsRouter); // Use the posts router
