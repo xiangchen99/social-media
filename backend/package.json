@@ -10,12 +10,15 @@
     "prettier": "^3.6.2"
   },
   "scripts": {
-    "start": "nodemon ./api/server.js"
+    "start": "bun --watch ./api/index.ts"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.2.1",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
