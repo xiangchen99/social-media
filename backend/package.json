@@ -10,7 +10,7 @@
     "prettier": "^3.6.2"
   },
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon ./api/server.js"
   },
   "peerDependencies": {
     "typescript": "^5"

@@ -2,9 +2,9 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import authRouter from "./routes/auth.js"; // Import the router
-import postsRouter from "./routes/posts.js"; // Import the new router
-import usersRouter from "./routes/users.js"; // Import the users router
+import authRouter from "../routes/auth.js"; // Import the router
+import postsRouter from "../routes/posts.js"; // Import the new router
+import usersRouter from "../routes/users.js"; // Import the users router
 
 // Load environment variables from .env file
 dotenv.config();
@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3001;
 
 // Add CORS middleware
 app.use(cors({
-  origin: ['http://localhost:3000', "https://bigbro.xiang-chen.com"]// Your frontend URL
+  origin: ['http://localhost:3000', "https://bigbro.xiang-chen.com"],// Your frontend URL,
   credentials: true
 }));
 
