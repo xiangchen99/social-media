@@ -26,7 +26,7 @@ const Login = () => {
       window.dispatchEvent(new Event('tokenChanged'));
       
       console.log('Login successful:', res.data.token);
-      navigate('/dashboard'); // Redirect to a protected page
+      navigate('/feed'); // Redirect to a protected page
     } catch (err) {
       console.error(err);
       const errorMessage = err.response?.data?.msg || 'An error occurred during login';

@@ -54,7 +54,7 @@ const App = () => {
           )}
           {token && ( // Show Dashboard if logged in
             <li>
-              <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
+              <Link to="/feed" style={{ color: 'white', textDecoration: 'none' }}>Feed</Link>
             </li>
           )}
         </ul>
@@ -65,7 +65,7 @@ const App = () => {
         <Route path="/" element={token ? <PrivateRoute><Feed /></PrivateRoute> : <HomePage />} /> {/* Default route */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<PrivateRoute><Feed /></PrivateRoute>} />
+        <Route path="/feed" element={<PrivateRoute><Feed /></PrivateRoute>} />
         <Route path="/profile/:id" element={<PrivateRoute><Profile /></PrivateRoute>} /> {/* New profile route */}
         <Route path="/homepage" element={<HomePage />} />
       </Routes>
