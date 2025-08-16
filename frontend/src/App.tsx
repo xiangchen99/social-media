@@ -7,6 +7,7 @@ import Feed from './components/Feed'; // This is now your main protected view
 import Profile from './components/Profile'; // Import the new Profile component
 import LogoutButton from './components/LogoutButton'; // Import LogoutButton
 import HomePage from './components/HomePage'; // Import HomePage component
+import EditProfile from './components/EditProfile'; // Import EditProfile component
 
 // Configure Axios base URL
 import axios from 'axios';
@@ -68,6 +69,7 @@ const App = () => {
         <Route path="/feed" element={<PrivateRoute><Feed /></PrivateRoute>} />
         <Route path="/profile/:id" element={<PrivateRoute><Profile /></PrivateRoute>} /> {/* New profile route */}
         <Route path="/homepage" element={<HomePage />} />
+        <Route path="/edit-profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} /> {/* New edit profile route */}
       </Routes>
     </BrowserRouter>
   );

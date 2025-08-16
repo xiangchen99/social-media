@@ -22,6 +22,40 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+    // @route   PUT /api/users/profile
+    // @desc    Update user profile (bio, profilePicture)
+    // @access  Private
+    router.put('/profile', auth, async (req, res) => {
+      const { bio, profilePicture } = req.body;
+
+      // Build profile object
+      const profileFields = {};
+      if (bio !== undefined) profileFields.bio = bio;
+      if (profilePicture !== undefined) profileFields.profilePicture = profilePicture;
+
+      try {
+        let user = await User.findById(req.user.id);
+
+        if (user) {
+          // Update
+          user = await User.findOneAndUpdate(
+            { _id: req.user.id },
+            { $set: profileFields },
+            { new: true } // Return the updated document
+          ).select('-password'); // Don't return password
+
+          return res.json(user);
+        }
+
+        // If for some reason user is not found (shouldn't happen with auth middleware)
+        return res.status(404).json({ msg: 'User not found' });
+
+      } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+      }
+    });
+
 // @route   PUT /api/users/follow/:id
 // @desc    Follow or unfollow a user
 // @access  Private
