@@ -8,6 +8,7 @@ import Profile from './components/Profile'; // Import the new Profile component
 import LogoutButton from './components/LogoutButton'; // Import LogoutButton
 import HomePage from './components/HomePage'; // Import HomePage component
 import EditProfile from './components/EditProfile'; // Import EditProfile component
+import '../styles/globals.css'; // Import global styles
 
 // Configure Axios base URL
 import axios from 'axios';
