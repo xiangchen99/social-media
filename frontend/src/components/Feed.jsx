@@ -1,19 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Heart, MessageCircle, Trash2, Eye, Users, Home, ArrowLeft } from 'lucide-react';
 import CreatePost from './CreatePost';
-import CommentList from './CommentList'; // Import CommentList
-import CommentInput from './CommentInput'; // Import CommentInput
+import CommentList from './CommentList';
+import CommentInput from './CommentInput';
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const currentUserId = localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).user.id : null;
-  const [expandedComments, setExpandedComments] = useState({}); // State to track which post's comments are open
+  const [expandedComments, setExpandedComments] = useState({});
 
-
-  // useCallback to memoize fetchPosts to prevent unnecessary re-renders in useEffect
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -26,11 +30,11 @@ const Feed = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // No dependencies, so it only re-creates if nothing changes
+  }, []);
 
   useEffect(() => {
     fetchPosts();
-  }, [fetchPosts]); // Rerun when fetchPosts changes
+  }, [fetchPosts]);
 
   const handleLike = async (postId) => {
     try {
@@ -46,7 +50,7 @@ const Feed = () => {
         },
       };
       await axios.put(`/api/posts/like/${postId}`, {}, config);
-      fetchPosts(); // Refresh posts to show updated likes
+      fetchPosts();
     } catch (err) {
       console.error('Error liking post:', err);
       if (err.response) {
@@ -74,7 +78,7 @@ const Feed = () => {
         },
       };
       await axios.delete(`/api/posts/${postId}`, config);
-      fetchPosts(); // Refresh posts to remove the deleted one
+      fetchPosts();
     } catch (err) {
       console.error('Error deleting post:', err);
       if (err.response) {
@@ -85,14 +89,13 @@ const Feed = () => {
     }
   };
 
-  // New functions for comments
   const fetchCommentsForPost = useCallback(async (postId) => {
     try {
       const res = await axios.get(`/api/posts/${postId}/comments`);
       return res.data;
     } catch (err) {
       console.error('Error fetching comments for post:', postId, err);
-      return []; // Return empty array on error
+      return [];
     }
   }, []);
 
@@ -104,7 +107,6 @@ const Feed = () => {
   };
 
   const handleCommentAdded = (newComment) => {
-    // Optimistically update the comments for the specific post
     setPosts(prevPosts =>
       prevPosts.map(post =>
         post._id === newComment.post
@@ -112,103 +114,219 @@ const Feed = () => {
           : post
       )
     );
-    // Re-fetch comments if the section is open to ensure accurate count/display
     if (expandedComments[newComment.post]) {
-        fetchPosts(); // A full refetch of posts will ensure comment counts are updated too
+      fetchPosts();
     }
   };
 
   const handleCommentDeleted = () => {
-      fetchPosts(); // A full refetch of posts will ensure comment counts are updated too
+    fetchPosts();
   };
 
-
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '20px' }}>Loading posts...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <Card className="w-96">
+          <CardContent className="p-8 text-center">
+            <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-lg font-medium text-gray-600 dark:text-gray-300">
+              Big Brother is scanning posts...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (error) {
-    return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>{error}</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+            <Button onClick={fetchPosts} className="w-full mt-4">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #eee', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-      <h1>Public Feed</h1>
-      {currentUserId && <CreatePost onPostCreated={fetchPosts} />} {/* Render CreatePost if logged in */}
-
-      {posts.length > 0 ? (
-        posts.map((post) => (
-          <div key={post._id} style={{ border: '1px solid #ddd', margin: '15px 0', padding: '15px', borderRadius: '8px', backgroundColor: 'white', position: 'relative' }}>
-            {post.user && (
-              <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                <Link to={`/profile/${post.user._id}`} style={{ textDecoration: 'none', color: '#007bff' }}>
-                  @{post.user.username}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Header */}
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Home
                 </Link>
-              </p>
-            )}
-            <p style={{ fontSize: '1.1em', lineHeight: '1.5' }}>{post.text}</p>
-            <p style={{ fontSize: '0.8em', color: '#666', marginTop: '10px' }}>
-              Posted on: {new Date(post.createdAt).toLocaleString()}
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
-              <button
-                onClick={() => handleLike(post._id)}
-                style={{
-                  backgroundColor: post.likes.some(like => like.user === currentUserId) ? '#dc3545' : '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  padding: '8px 12px',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginRight: '10px'
-                }}
-              >
-                <span style={{ marginRight: '5px' }}>❤️</span> {post.likes.length}
-              </button>
-              {currentUserId === post.user?._id && (
-                <button
-                  onClick={() => handleDelete(post._id)}
-                  style={{
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 12px',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Delete
-                </button>
-              )}
-               <button
-                onClick={() => handleCommentToggle(post._id)}
-                style={{
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  padding: '8px 12px',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '0.9em',
-                  marginLeft: 'auto' // Push to the right
-                }}
-              >
-                {expandedComments[post._id] ? 'Hide Comments' : 'View Comments'}
-              </button>
+              </Button>
+              <Badge variant="outline" className="text-sm font-medium">
+                <Eye className="w-4 h-4 mr-2" />
+                Under Surveillance
+              </Badge>
             </div>
-            {expandedComments[post._id] && (
-              <div style={{ marginTop: '15px' }}>
-                {/* We'll pass fetchCommentsForPost here to get comments dynamically */}
-                <CommentsSectionWrapper postId={post._id} onCommentAdded={handleCommentAdded} onCommentDeleted={handleCommentDeleted} currentUserId={currentUserId} />
-              </div>
-            )}
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <span className="bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
+                Big Brother
+              </span>{' '}
+              Feed
+            </h1>
+            <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+              <Users className="w-4 h-4" />
+              <span>{posts.length} posts</span>
+            </div>
           </div>
-        ))
-      ) : (
-        <p style={{ textAlign: 'center', color: '#888' }}>No posts to display. Be the first to create one!</p>
-      )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        {/* Create Post Section */}
+        {currentUserId && (
+          <div className="mb-8">
+            <CreatePost onPostCreated={fetchPosts} />
+          </div>
+        )}
+
+        {/* Secret Message Card */}
+        <Card className="mb-8 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800">
+          <CardContent className="p-6 text-center">
+            <div className="flex items-center justify-center mb-3">
+              <MessageCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-2" />
+              <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200">
+                Secret Message Revealed!
+              </h3>
+            </div>
+            <p className="text-yellow-700 dark:text-yellow-300">
+              🎉 Congratulations! You've successfully logged into Big Brother Social Media. 
+              This is the hidden message I promised you on the homepage. Welcome to the surveillance state! 👁️
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Posts */}
+        {posts.length > 0 ? (
+          <div className="space-y-6">
+            {posts.map((post) => (
+              <Card key={post._id} className="hover:shadow-lg transition-shadow duration-300">
+                <CardContent className="p-6">
+                  {/* Post Header */}
+                  {post.user && (
+                    <div className="flex items-center mb-4">
+                      <Avatar className="w-10 h-10 mr-3">
+                        <AvatarFallback>
+                          {post.user.username?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <Link 
+                          to={`/profile/${post.user._id}`} 
+                          className="font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                        >
+                          @{post.user.username}
+                        </Link>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(post.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        <Eye className="w-3 h-3 mr-1" />
+                        Monitored
+                      </Badge>
+                    </div>
+                  )}
+
+                  {/* Post Content */}
+                  <p className="text-gray-800 dark:text-gray-200 mb-4 leading-relaxed">
+                    {post.text}
+                  </p>
+
+                  {/* Post Actions */}
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleLike(post._id)}
+                      className={`${
+                        post.likes.some(like => like.user === currentUserId)
+                          ? 'text-red-600 hover:text-red-700'
+                          : 'text-gray-500 hover:text-red-500'
+                      } transition-colors`}
+                    >
+                      <Heart 
+                        className={`w-4 h-4 mr-1 ${
+                          post.likes.some(like => like.user === currentUserId) ? 'fill-current' : ''
+                        }`} 
+                      />
+                      {post.likes.length}
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCommentToggle(post._id)}
+                      className="text-gray-500 hover:text-blue-500 transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-1" />
+                      {expandedComments[post._id] ? 'Hide Comments' : 'View Comments'}
+                    </Button>
+
+                    {currentUserId === post.user?._id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(post._id)}
+                        className="text-gray-500 hover:text-red-500 transition-colors ml-auto"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Comments Section */}
+                  {expandedComments[post._id] && (
+                    <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <CommentsSectionWrapper 
+                        postId={post._id} 
+                        onCommentAdded={handleCommentAdded} 
+                        onCommentDeleted={handleCommentDeleted} 
+                        currentUserId={currentUserId} 
+                      />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                No posts yet
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                The surveillance feed is empty. Be the first to share something!
+              </p>
+              {currentUserId && (
+                <Button onClick={() => window.scrollTo(0, 0)}>
+                  Create First Post
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
@@ -237,24 +355,38 @@ const CommentsSectionWrapper = ({ postId, onCommentAdded, onCommentDeleted, curr
 
   const handleOptimisticCommentDelete = (deletedCommentId) => {
     setComments(prevComments => prevComments.filter(comment => comment._id !== deletedCommentId));
-    onCommentDeleted(); // Notify parent to potentially re-fetch if needed for accurate counts
+    onCommentDeleted();
   };
 
   const handleOptimisticCommentAdd = (newComment) => {
-    // Add the newly created comment to the list
     setComments(prevComments => [...prevComments, newComment]);
-    onCommentAdded(newComment); // Notify parent to update count or overall post
+    onCommentAdded(newComment);
   };
 
   if (commentsLoading) {
-    return <div style={{ textAlign: 'center', padding: '10px', fontSize: '0.9em' }}>Loading comments...</div>;
+    return (
+      <div className="text-center py-4">
+        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mx-auto mb-2" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</p>
+      </div>
+    );
   }
 
   return (
-    <>
-      <CommentList comments={comments} postId={postId} onCommentDeleted={handleOptimisticCommentDelete} currentUserId={currentUserId} />
-      {currentUserId && <CommentInput postId={postId} onCommentAdded={handleOptimisticCommentAdd} />}
-    </>
+    <div className="space-y-4">
+      <CommentList 
+        comments={comments} 
+        postId={postId} 
+        onCommentDeleted={handleOptimisticCommentDelete} 
+        currentUserId={currentUserId} 
+      />
+      {currentUserId && (
+        <CommentInput 
+          postId={postId} 
+          onCommentAdded={handleOptimisticCommentAdd} 
+        />
+      )}
+    </div>
   );
 };
 

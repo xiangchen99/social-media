@@ -1,29 +1,31 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Heart, MessageCircle, Trash2, Eye, Users, UserPlus, UserMinus, Settings, ArrowLeft, MapPin, Calendar } from 'lucide-react';
 import CommentList from './CommentList';
 import CommentInput from './CommentInput';
 
-
 const Profile = () => {
-  const { id } = useParams(); // Get the user ID from the URL parameter
+  const { id } = useParams();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const currentUserId = localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).user.id : null;
-  const [isFollowing, setIsFollowing] = useState(false); // New state for follow status
-  const [expandedComments, setExpandedComments] = useState({}); // State to track which post's comments are open
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [expandedComments, setExpandedComments] = useState({});
+  const navigate = useNavigate();
 
-
-  // Function to fetch user details
   const fetchUserDetails = useCallback(async () => {
     try {
       const res = await axios.get(`/api/users/${id}`);
       setUser(res.data);
-      // Set initial follow status
       if (currentUserId && res.data.followers) {
         setIsFollowing(res.data.followers.some(follower => follower.user._id === currentUserId));
       } else {
@@ -35,7 +37,6 @@ const Profile = () => {
     }
   }, [id, currentUserId]);
 
-  // Function to fetch user's posts
   const fetchUserPosts = useCallback(async () => {
     try {
       const res = await axios.get(`/api/posts/user/${id}`);
@@ -48,10 +49,9 @@ const Profile = () => {
 
   useEffect(() => {
     setLoading(true);
-    // Fetch both user details and posts concurrently
     Promise.all([fetchUserDetails(), fetchUserPosts()])
       .finally(() => setLoading(false));
-  }, [id, fetchUserDetails, fetchUserPosts]); // Re-run when ID or fetch functions change
+  }, [id, fetchUserDetails, fetchUserPosts]);
 
   const handleLike = async (postId) => {
     try {
@@ -67,7 +67,7 @@ const Profile = () => {
         },
       };
       await axios.put(`/api/posts/like/${postId}`, {}, config);
-      fetchUserPosts(); // Refresh posts to show updated likes
+      fetchUserPosts();
     } catch (err) {
       console.error('Error liking post:', err);
       if (err.response) {
@@ -95,7 +95,7 @@ const Profile = () => {
         },
       };
       await axios.delete(`/api/posts/${postId}`, config);
-      fetchUserPosts(); // Refresh posts to remove the deleted one
+      fetchUserPosts();
     } catch (err) {
       console.error('Error deleting post:', err);
       if (err.response) {
@@ -106,7 +106,6 @@ const Profile = () => {
     }
   };
 
-  // Handler for follow/unfollow
   const handleFollowToggle = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -115,8 +114,8 @@ const Profile = () => {
         return;
       }
       if (currentUserId === id) {
-          alert("You cannot follow/unfollow yourself.");
-          return;
+        alert("You cannot follow/unfollow yourself.");
+        return;
       }
 
       const config = {
@@ -125,9 +124,8 @@ const Profile = () => {
         },
       };
       const res = await axios.put(`/api/users/follow/${id}`, {}, config);
-      // Optimistically update isFollowing state based on response
       setIsFollowing(res.data.isFollowing);
-      fetchUserDetails(); // Refresh user details to update follow counts
+      fetchUserDetails();
     } catch (err) {
       console.error('Error toggling follow:', err);
       if (err.response) {
@@ -138,7 +136,6 @@ const Profile = () => {
     }
   };
 
-  // New functions for comments
   const handleCommentToggle = async (postId) => {
     setExpandedComments(prevState => ({
       ...prevState,
@@ -147,150 +144,314 @@ const Profile = () => {
   };
 
   const handleCommentAdded = () => {
-      fetchUserPosts(); // Re-fetch user posts to ensure comment counts are updated
+    fetchUserPosts();
   };
 
   const handleCommentDeleted = () => {
-      fetchUserPosts(); // Re-fetch user posts to ensure comment counts are updated
+    fetchUserPosts();
   };
 
-
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '20px' }}>Loading profile...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <Card className="w-96">
+          <CardContent className="p-8 text-center">
+            <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-lg font-medium text-gray-600 dark:text-gray-300">
+              Big Brother is loading profile...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (error) {
-    return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>{error}</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+            <Button onClick={() => window.location.reload()} className="w-full mt-4">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!user) {
-    return <div style={{ textAlign: 'center', padding: '20px' }}>User not found.</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              User not found
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              This profile doesn't exist or has been removed from surveillance.
+            </p>
+            <Button asChild>
+              <Link to="/feed">Return to Feed</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const defaultProfilePic = 'https://img.freepik.com/premium-vector/avatar-profile-icon-flat-style-female-user-profile-vector-illustration-isolated-background-women-profile-sign-business-concept_157943-38866.jpg?w=360';
 
   return (
-    <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #eee', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <img
-          src={user.profilePicture || defaultProfilePic} // Use default if user.profilePicture is empty
-          alt={`${user.username}'s profile`}
-          style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #007bff', marginBottom: '15px' }}
-          onError={(e) => { e.target.onerror = null; e.target.src = defaultProfilePic; }} // Fix: set onerror to null
-        />
-        <h1 style={{ marginBottom: '10px' }}>{user.username}'s Profile</h1>
-        <p style={{ color: '#555' }}>{user.email}</p>
-        {user.bio && <p style={{ fontStyle: 'italic', margin: '10px 0' }}>"{user.bio}"</p>}
-        <p style={{ color: '#555' }}>Followers: {user.followers ? user.followers.length : 0}</p>
-        <p style={{ color: '#555' }}>Following: {user.following ? user.following.length : 0}</p>
-
-        {currentUserId && currentUserId === id ? (
-            <button
-                onClick={() => navigate('/edit-profile')}
-                style={{
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    padding: '10px 15px',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontSize: '1em',
-                    marginTop: '15px'
-                }}
-            >
-                Edit Profile
-            </button>
-        ) : (
-          currentUserId && (
-            <button
-              onClick={handleFollowToggle}
-              style={{
-                backgroundColor: isFollowing ? '#f44336' : '#007bff',
-                color: 'white',
-                padding: '10px 15px',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '1em',
-                marginTop: '15px'
-              }}
-            >
-              {isFollowing ? 'Unfollow' : 'Follow'}
-            </button>
-          )
-        )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Header */}
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/feed">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Feed
+              </Link>
+            </Button>
+            <Badge variant="outline" className="text-sm font-medium">
+              <Eye className="w-4 h-4 mr-2" />
+              Profile Under Surveillance
+            </Badge>
+          </div>
+        </div>
       </div>
 
-      <h2 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px' }}>Posts by {user.username}</h2>
-      {posts.length > 0 ? (
-        posts.map((post) => (
-          <div key={post._id} style={{ border: '1px solid #ddd', margin: '15px 0', padding: '15px', borderRadius: '8px', backgroundColor: 'white', position: 'relative' }}>
-            <p style={{ fontSize: '1.1em', lineHeight: '1.5' }}>{post.text}</p>
-            <p style={{ fontSize: '0.8em', color: '#666', marginTop: '10px' }}>
-              Posted on: {new Date(post.createdAt).toLocaleString()}
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
-              <button
-                onClick={() => handleLike(post._id)}
-                style={{
-                  backgroundColor: post.likes.some(like => like.user === currentUserId) ? '#dc3545' : '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  padding: '8px 12px',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginRight: '10px'
-                }}
-              >
-                <span style={{ marginRight: '5px' }}>❤️</span> {post.likes.length}
-              </button>
-              {currentUserId === post.user?._id && (
-                <button
-                  onClick={() => handleDelete(post._id)}
-                  style={{
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 12px',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                  }}
+      {/* Content */}
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Profile Header */}
+        <Card className="mb-8">
+          <CardContent className="p-8">
+            <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+              {/* Profile Picture */}
+              <div className="relative">
+                <Avatar className="w-32 h-32 border-4 border-red-200 dark:border-red-800">
+                  <AvatarImage 
+                    src={user.profilePicture || defaultProfilePic} 
+                    alt={`${user.username}'s profile`}
+                    onError={(e) => { 
+                      e.target.onerror = null; 
+                      e.target.src = defaultProfilePic; 
+                    }}
+                  />
+                  <AvatarFallback className="text-2xl font-bold">
+                    {user.username?.charAt(0)?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <Badge 
+                  variant="secondary" 
+                  className="absolute -bottom-2 left-1/2 transform -translate-x-1/2"
                 >
-                  Delete
-                </button>
-              )}
-              <button
-                onClick={() => handleCommentToggle(post._id)}
-                style={{
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  padding: '8px 12px',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '0.9em',
-                  marginLeft: 'auto'
-                }}
-              >
-                {expandedComments[post._id] ? 'Hide Comments' : 'View Comments'}
-              </button>
-            </div>
-            {expandedComments[post._id] && (
-              <div style={{ marginTop: '15px' }}>
-                <CommentsSectionWrapper postId={post._id} onCommentAdded={handleCommentAdded} onCommentDeleted={handleCommentDeleted} currentUserId={currentUserId} />
+                  <Eye className="w-3 h-3 mr-1" />
+                  Monitored
+                </Badge>
               </div>
-            )}
+
+              {/* Profile Info */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="mb-4">
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    @{user.username}
+                  </h1>
+                  <p className="text-gray-600 dark:text-gray-300">{user.email}</p>
+                  {user.bio && (
+                    <p className="text-gray-700 dark:text-gray-200 italic mt-2 max-w-md">
+                      "{user.bio}"
+                    </p>
+                  )}
+                </div>
+
+                {/* Stats */}
+                <div className="flex justify-center md:justify-start space-x-6 mb-6">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {posts.length}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Posts</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {user.followers ? user.followers.length : 0}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Followers</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {user.following ? user.following.length : 0}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Following</p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-center md:justify-start space-x-4">
+                  {currentUserId && currentUserId === id ? (
+                    <Button onClick={() => navigate('/edit-profile')} variant="outline">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  ) : (
+                    currentUserId && (
+                      <Button 
+                        onClick={handleFollowToggle}
+                        variant={isFollowing ? "outline" : "default"}
+                        className={isFollowing ? "text-red-600 border-red-600 hover:bg-red-50" : ""}
+                      >
+                        {isFollowing ? (
+                          <>
+                            <UserMinus className="w-4 h-4 mr-2" />
+                            Unfollow
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Follow
+                          </>
+                        )}
+                      </Button>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Posts Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Posts by @{user.username}
+            </h2>
+            <Badge variant="secondary">
+              {posts.length} {posts.length === 1 ? 'post' : 'posts'}
+            </Badge>
           </div>
-        ))
-      ) : (
-        <p style={{ textAlign: 'center', color: '#888' }}>{user.username} has no posts yet.</p>
-      )}
+
+          {posts.length > 0 ? (
+            <div className="space-y-6">
+              {posts.map((post) => (
+                <Card key={post._id} className="hover:shadow-lg transition-shadow duration-300">
+                  <CardContent className="p-6">
+                    {/* Post Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage 
+                            src={user.profilePicture || defaultProfilePic} 
+                            alt={user.username}
+                          />
+                          <AvatarFallback>
+                            {user.username?.charAt(0)?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            @{user.username}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {new Date(post.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        <Eye className="w-3 h-3 mr-1" />
+                        Monitored
+                      </Badge>
+                    </div>
+
+                    {/* Post Content */}
+                    <p className="text-gray-800 dark:text-gray-200 mb-4 leading-relaxed">
+                      {post.text}
+                    </p>
+
+                    {/* Post Actions */}
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLike(post._id)}
+                        className={`${
+                          post.likes.some(like => like.user === currentUserId)
+                            ? 'text-red-600 hover:text-red-700'
+                            : 'text-gray-500 hover:text-red-500'
+                        } transition-colors`}
+                      >
+                        <Heart 
+                          className={`w-4 h-4 mr-1 ${
+                            post.likes.some(like => like.user === currentUserId) ? 'fill-current' : ''
+                          }`} 
+                        />
+                        {post.likes.length}
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCommentToggle(post._id)}
+                        className="text-gray-500 hover:text-blue-500 transition-colors"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        {expandedComments[post._id] ? 'Hide Comments' : 'View Comments'}
+                      </Button>
+
+                      {currentUserId === post.user?._id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(post._id)}
+                          className="text-gray-500 hover:text-red-500 transition-colors ml-auto"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Comments Section */}
+                    {expandedComments[post._id] && (
+                      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <CommentsSectionWrapper 
+                          postId={post._id} 
+                          onCommentAdded={handleCommentAdded} 
+                          onCommentDeleted={handleCommentDeleted} 
+                          currentUserId={currentUserId} 
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  No posts yet
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  @{user.username} hasn't shared anything under Big Brother's surveillance yet.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
 
+// Helper component to manage comment state and fetching
 const CommentsSectionWrapper = ({ postId, onCommentAdded, onCommentDeleted, currentUserId }) => {
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
@@ -322,16 +483,30 @@ const CommentsSectionWrapper = ({ postId, onCommentAdded, onCommentDeleted, curr
     onCommentAdded(newComment);
   };
 
-
   if (commentsLoading) {
-    return <div style={{ textAlign: 'center', padding: '10px', fontSize: '0.9em' }}>Loading comments...</div>;
+    return (
+      <div className="text-center py-4">
+        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mx-auto mb-2" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</p>
+      </div>
+    );
   }
 
   return (
-    <>
-      <CommentList comments={comments} postId={postId} onCommentDeleted={handleOptimisticCommentDelete} currentUserId={currentUserId} />
-      {currentUserId && <CommentInput postId={postId} onCommentAdded={handleOptimisticCommentAdd} />}
-    </>
+    <div className="space-y-4">
+      <CommentList 
+        comments={comments} 
+        postId={postId} 
+        onCommentDeleted={handleOptimisticCommentDelete} 
+        currentUserId={currentUserId} 
+      />
+      {currentUserId && (
+        <CommentInput 
+          postId={postId} 
+          onCommentAdded={handleOptimisticCommentAdd} 
+        />
+      )}
+    </div>
   );
 };
 

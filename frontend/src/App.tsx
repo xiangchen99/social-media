@@ -12,9 +12,9 @@ import '../styles/globals.css'; // Import global styles
 
 // Configure Axios base URL
 import axios from 'axios';
-//axios.defaults.baseURL = "https://social-media-chi-black.vercel.app";
+axios.defaults.baseURL = "https://social-media-chi-black.vercel.app";
 // If you are running the backend locally, you can uncomment the line below
-axios.defaults.baseURL = "http://localhost:3001"; // Use this for local
+//axios.defaults.baseURL = "http://localhost:3001"; // Use this for local
 
 const App = () => {
   let currentUserId = null; // Initialize currentUserId to null
