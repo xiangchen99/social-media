@@ -1,20 +1,33 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, Shield, ArrowLeft, LogIn, Users, MessageCircle } from 'lucide-react';
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Eye,
+  Shield,
+  ArrowLeft,
+  LogIn,
+  Users,
+  MessageCircle,
+} from "lucide-react";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -22,27 +35,28 @@ const Login = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) setError(''); // Clear error when user starts typing
+    if (error) setError(""); // Clear error when user starts typing
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const res = await axios.post('/api/auth/login', formData);
+      const res = await axios.post("/api/auth/login", formData);
       // Save the token to local storage
-      localStorage.setItem('token', res.data.token);
-      
+      localStorage.setItem("token", res.data.token);
+
       // Dispatch custom event to notify App component
-      window.dispatchEvent(new Event('tokenChanged'));
-      
-      console.log('Login successful:', res.data.token);
-      navigate('/feed'); // Redirect to a protected page
+      window.dispatchEvent(new Event("tokenChanged"));
+
+      console.log("Login successful:", res.data.token);
+      navigate("/feed"); // Redirect to a protected page
     } catch (err) {
       console.error(err);
-      const errorMessage = err.response?.data?.msg || 'An error occurred during login';
+      const errorMessage =
+        err.response?.data?.msg || "An error occurred during login";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -54,7 +68,11 @@ const Login = () => {
       <div className="w-full max-w-md">
         {/* Back to Home Button */}
         <div className="mb-6">
-          <Button asChild variant="ghost" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+          <Button
+            asChild
+            variant="ghost"
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          >
             <Link to="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -70,10 +88,10 @@ const Login = () => {
                 System Access
               </Badge>
             </div>
-            
+
             <div>
               <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white">
-                Enter{' '}
+                Enter{" "}
                 <span className="bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
                   Big Brother
                 </span>
@@ -126,8 +144,8 @@ const Login = () => {
                 />
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-12 text-lg font-medium"
                 disabled={isLoading}
               >
@@ -147,9 +165,9 @@ const Login = () => {
 
             <div className="text-center space-y-4">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Not under surveillance yet?{' '}
-                <Link 
-                  to="/register" 
+                Not under surveillance yet?{" "}
+                <Link
+                  to="/register"
                   className="font-medium text-red-600 hover:text-red-500 transition-colors"
                 >
                   Join the Revolution
@@ -166,7 +184,8 @@ const Login = () => {
                       </p>
                     </div>
                     <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
-                      Login to discover the hidden message waiting for you in the system.
+                      Login to discover the hidden message waiting for you in
+                      the system.
                     </p>
                   </CardContent>
                 </Card>

@@ -1,32 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { 
-  CircularProgress, 
-  IconButton, 
-  Tooltip,
-  Chip
-} from '@mui/material';
-import { 
-  Camera, 
-  User, 
-  Save, 
-  ArrowLeft, 
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CircularProgress, IconButton, Tooltip, Chip } from "@mui/material";
+import {
+  Camera,
+  User,
+  Save,
+  ArrowLeft,
   AlertCircle,
-  ImageIcon
-} from 'lucide-react';
+  ImageIcon,
+} from "lucide-react";
 
 const EditProfile = () => {
   const [formData, setFormData] = useState({
-    bio: '',
-    profilePicture: '',
+    bio: "",
+    profilePicture: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -36,37 +31,40 @@ const EditProfile = () => {
   const navigate = useNavigate();
 
   const { bio, profilePicture } = formData;
-  const defaultProfilePic = 'https://img.freepik.com/premium-vector/avatar-profile-icon-flat-style-female-user-profile-vector-illustration-isolated-background-women-profile-sign-business-concept_157943-38866.jpg?w=360';
+  const defaultProfilePic =
+    "https://img.freepik.com/premium-vector/avatar-profile-icon-flat-style-female-user-profile-vector-illustration-isolated-background-women-profile-sign-business-concept_157943-38866.jpg?w=360";
 
   useEffect(() => {
     const fetchCurrentProfile = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (!token) {
-          setError('No token found. Please log in.');
+          setError("No token found. Please log in.");
           setLoading(false);
           return;
         }
 
-        const userId = JSON.parse(atob(token.split('.')[1])).user.id;
+        const userId = JSON.parse(atob(token.split(".")[1])).user.id;
         const config = {
           headers: {
-            'x-auth-token': token,
+            "x-auth-token": token,
           },
         };
-        
+
         const res = await axios.get(`/api/users/${userId}`, config);
         const userData = {
-          bio: res.data.bio || '',
+          bio: res.data.bio || "",
           profilePicture: res.data.profilePicture || defaultProfilePic,
         };
-        
+
         setFormData(userData);
         setBioCharCount(userData.bio.length);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching current profile:', err);
-        setError(err.response?.data?.msg || 'Failed to load profile for editing.');
+        console.error("Error fetching current profile:", err);
+        setError(
+          err.response?.data?.msg || "Failed to load profile for editing.",
+        );
         setLoading(false);
       }
     };
@@ -77,12 +75,12 @@ const EditProfile = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
-    if (name === 'bio') {
+
+    if (name === "bio") {
       setBioCharCount(value.length);
     }
-    
-    if (name === 'profilePicture') {
+
+    if (name === "profilePicture") {
       setPreviewError(false);
     }
   };
@@ -93,29 +91,29 @@ const EditProfile = () => {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        setError('You must be logged in to update your profile.');
+        setError("You must be logged in to update your profile.");
         setSaving(false);
         return;
       }
 
       const config = {
         headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token,
+          "Content-Type": "application/json",
+          "x-auth-token": token,
         },
       };
 
-      const res = await axios.put('/api/users/profile', formData, config);
-      console.log('Profile updated:', res.data);
+      const res = await axios.put("/api/users/profile", formData, config);
+      console.log("Profile updated:", res.data);
       navigate(`/profile/${res.data._id}`);
     } catch (err) {
       if (err.response) {
-        setError(err.response.data.msg || 'Failed to update profile.');
+        setError(err.response.data.msg || "Failed to update profile.");
         console.error(err.response.data);
       } else {
-        setError('Network error or server unavailable. Please try again.');
+        setError("Network error or server unavailable. Please try again.");
         console.error(err);
       }
     } finally {
@@ -161,7 +159,7 @@ const EditProfile = () => {
         {/* Header */}
         <div className="flex items-center mb-8">
           <Tooltip title="Go back">
-            <IconButton 
+            <IconButton
               onClick={() => navigate(-1)}
               className="mr-4 hover:bg-white/50 transition-colors"
             >
@@ -181,7 +179,7 @@ const EditProfile = () => {
               Update Your Information
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="p-8">
             {error && (
               <Alert variant="destructive" className="mb-6">
@@ -195,9 +193,13 @@ const EditProfile = () => {
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
                   <Avatar className="w-32 h-32 border-4 border-blue-200 shadow-lg">
-                    <AvatarImage 
-                      src={previewError ? defaultProfilePic : (profilePicture || defaultProfilePic)}
-                      alt="Profile Preview" 
+                    <AvatarImage
+                      src={
+                        previewError
+                          ? defaultProfilePic
+                          : profilePicture || defaultProfilePic
+                      }
+                      alt="Profile Preview"
                       onError={handleImageError}
                     />
                     <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl">
@@ -208,9 +210,12 @@ const EditProfile = () => {
                     <Camera className="w-4 h-4 text-white" />
                   </div>
                 </div>
-                
+
                 <div className="w-full max-w-md">
-                  <Label htmlFor="profilePicture" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <Label
+                    htmlFor="profilePicture"
+                    className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                  >
                     <ImageIcon className="w-4 h-4" />
                     Profile Picture URL
                   </Label>
@@ -234,7 +239,10 @@ const EditProfile = () => {
 
               {/* Bio Section */}
               <div className="space-y-2">
-                <Label htmlFor="bio" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="bio"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Bio
                 </Label>
                 <Textarea
@@ -248,8 +256,10 @@ const EditProfile = () => {
                   className="resize-none transition-all duration-200 focus:ring-2 focus:ring-blue-500"
                 />
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Share something interesting about yourself</span>
-                  <Chip 
+                  <span className="text-gray-500">
+                    Share something interesting about yourself
+                  </span>
+                  <Chip
                     label={`${bioCharCount}/280`}
                     size="small"
                     color={bioCharCount > 250 ? "warning" : "primary"}
@@ -260,8 +270,8 @@ const EditProfile = () => {
 
               {/* Action Buttons */}
               <div className="flex gap-4 pt-6">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={saving}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 transition-all duration-200 transform hover:scale-105"
                 >
@@ -277,8 +287,8 @@ const EditProfile = () => {
                     </>
                   )}
                 </Button>
-                
-                <Button 
+
+                <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate(-1)}

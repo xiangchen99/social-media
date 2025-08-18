@@ -1,14 +1,32 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Heart, MessageCircle, Trash2, Eye, Users, UserPlus, UserMinus, Settings, ArrowLeft, MapPin, Calendar } from 'lucide-react';
-import CommentList from './CommentList';
-import CommentInput from './CommentInput';
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Heart,
+  MessageCircle,
+  Trash2,
+  Eye,
+  Users,
+  UserPlus,
+  UserMinus,
+  Settings,
+  ArrowLeft,
+  MapPin,
+  Calendar,
+} from "lucide-react";
+import CommentList from "./CommentList";
+import CommentInput from "./CommentInput";
 
 const Profile = () => {
   const { id } = useParams();
@@ -17,7 +35,9 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const currentUserId = localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).user.id : null;
+  const currentUserId = localStorage.getItem("token")
+    ? JSON.parse(atob(localStorage.getItem("token").split(".")[1])).user.id
+    : null;
   const [isFollowing, setIsFollowing] = useState(false);
   const [expandedComments, setExpandedComments] = useState({});
   const navigate = useNavigate();
@@ -27,13 +47,17 @@ const Profile = () => {
       const res = await axios.get(`/api/users/${id}`);
       setUser(res.data);
       if (currentUserId && res.data.followers) {
-        setIsFollowing(res.data.followers.some(follower => follower.user._id === currentUserId));
+        setIsFollowing(
+          res.data.followers.some(
+            (follower) => follower.user === currentUserId,
+          ),
+        );
       } else {
         setIsFollowing(false);
       }
     } catch (err) {
-      setError('Failed to fetch user profile.');
-      console.error('Error fetching user:', err);
+      setError("Failed to fetch user profile.");
+      console.error("Error fetching user:", err);
     }
   }, [id, currentUserId]);
 
@@ -42,75 +66,76 @@ const Profile = () => {
       const res = await axios.get(`/api/posts/user/${id}`);
       setPosts(res.data);
     } catch (err) {
-      setError('Failed to fetch user posts.');
-      console.error('Error fetching user posts:', err);
+      setError("Failed to fetch user posts.");
+      console.error("Error fetching user posts:", err);
     }
   }, [id]);
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchUserDetails(), fetchUserPosts()])
-      .finally(() => setLoading(false));
+    Promise.all([fetchUserDetails(), fetchUserPosts()]).finally(() =>
+      setLoading(false),
+    );
   }, [id, fetchUserDetails, fetchUserPosts]);
 
   const handleLike = async (postId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('You must be logged in to like a post.');
+        alert("You must be logged in to like a post.");
         return;
       }
 
       const config = {
         headers: {
-          'x-auth-token': token,
+          "x-auth-token": token,
         },
       };
       await axios.put(`/api/posts/like/${postId}`, {}, config);
       fetchUserPosts();
     } catch (err) {
-      console.error('Error liking post:', err);
+      console.error("Error liking post:", err);
       if (err.response) {
-        alert(err.response.data.msg || 'Failed to like/unlike post.');
+        alert(err.response.data.msg || "Failed to like/unlike post.");
       } else {
-        alert('Network error. Could not like/unlike post.');
+        alert("Network error. Could not like/unlike post.");
       }
     }
   };
 
   const handleDelete = async (postId) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) {
+    if (!window.confirm("Are you sure you want to delete this post?")) {
       return;
     }
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('You must be logged in to delete a post.');
+        alert("You must be logged in to delete a post.");
         return;
       }
 
       const config = {
         headers: {
-          'x-auth-token': token,
+          "x-auth-token": token,
         },
       };
       await axios.delete(`/api/posts/${postId}`, config);
       fetchUserPosts();
     } catch (err) {
-      console.error('Error deleting post:', err);
+      console.error("Error deleting post:", err);
       if (err.response) {
-        alert(err.response.data.msg || 'Failed to delete post.');
+        alert(err.response.data.msg || "Failed to delete post.");
       } else {
-        alert('Network error. Could not delete post.');
+        alert("Network error. Could not delete post.");
       }
     }
   };
 
   const handleFollowToggle = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('You must be logged in to follow/unfollow.');
+        alert("You must be logged in to follow/unfollow.");
         return;
       }
       if (currentUserId === id) {
@@ -120,26 +145,26 @@ const Profile = () => {
 
       const config = {
         headers: {
-          'x-auth-token': token,
+          "x-auth-token": token,
         },
       };
       const res = await axios.put(`/api/users/follow/${id}`, {}, config);
       setIsFollowing(res.data.isFollowing);
       fetchUserDetails();
     } catch (err) {
-      console.error('Error toggling follow:', err);
+      console.error("Error toggling follow:", err);
       if (err.response) {
-        alert(err.response.data.msg || 'Failed to update follow status.');
+        alert(err.response.data.msg || "Failed to update follow status.");
       } else {
-        alert('Network error. Could not update follow status.');
+        alert("Network error. Could not update follow status.");
       }
     }
   };
 
   const handleCommentToggle = async (postId) => {
-    setExpandedComments(prevState => ({
+    setExpandedComments((prevState) => ({
       ...prevState,
-      [postId]: !prevState[postId]
+      [postId]: !prevState[postId],
     }));
   };
 
@@ -174,7 +199,10 @@ const Profile = () => {
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
-            <Button onClick={() => window.location.reload()} className="w-full mt-4">
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full mt-4"
+            >
               Try Again
             </Button>
           </CardContent>
@@ -203,7 +231,8 @@ const Profile = () => {
     );
   }
 
-  const defaultProfilePic = 'https://img.freepik.com/premium-vector/avatar-profile-icon-flat-style-female-user-profile-vector-illustration-isolated-background-women-profile-sign-business-concept_157943-38866.jpg?w=360';
+  const defaultProfilePic =
+    "https://img.freepik.com/premium-vector/avatar-profile-icon-flat-style-female-user-profile-vector-illustration-isolated-background-women-profile-sign-business-concept_157943-38866.jpg?w=360";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -234,20 +263,20 @@ const Profile = () => {
               {/* Profile Picture */}
               <div className="relative">
                 <Avatar className="w-32 h-32 border-4 border-red-200 dark:border-red-800">
-                  <AvatarImage 
-                    src={user.profilePicture || defaultProfilePic} 
+                  <AvatarImage
+                    src={user.profilePicture || defaultProfilePic}
                     alt={`${user.username}'s profile`}
-                    onError={(e) => { 
-                      e.target.onerror = null; 
-                      e.target.src = defaultProfilePic; 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = defaultProfilePic;
                     }}
                   />
                   <AvatarFallback className="text-2xl font-bold">
-                    {user.username?.charAt(0)?.toUpperCase() || 'U'}
+                    {user.username?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className="absolute -bottom-2 left-1/2 transform -translate-x-1/2"
                 >
                   <Eye className="w-3 h-3 mr-1" />
@@ -261,7 +290,9 @@ const Profile = () => {
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                     @{user.username}
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-300">{user.email}</p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {user.email}
+                  </p>
                   {user.bio && (
                     <p className="text-gray-700 dark:text-gray-200 italic mt-2 max-w-md">
                       "{user.bio}"
@@ -275,35 +306,48 @@ const Profile = () => {
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {posts.length}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Posts</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Posts
+                    </p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {user.followers ? user.followers.length : 0}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Followers</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Followers
+                    </p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {user.following ? user.following.length : 0}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Following</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Following
+                    </p>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex justify-center md:justify-start space-x-4">
                   {currentUserId && currentUserId === id ? (
-                    <Button onClick={() => navigate('/edit-profile')} variant="outline">
+                    <Button
+                      onClick={() => navigate("/edit-profile")}
+                      variant="outline"
+                    >
                       <Settings className="w-4 h-4 mr-2" />
                       Edit Profile
                     </Button>
                   ) : (
                     currentUserId && (
-                      <Button 
+                      <Button
                         onClick={handleFollowToggle}
                         variant={isFollowing ? "outline" : "default"}
-                        className={isFollowing ? "text-red-600 border-red-600 hover:bg-red-50" : ""}
+                        className={
+                          isFollowing
+                            ? "text-red-600 border-red-600 hover:bg-red-50"
+                            : ""
+                        }
                       >
                         {isFollowing ? (
                           <>
@@ -332,25 +376,28 @@ const Profile = () => {
               Posts by @{user.username}
             </h2>
             <Badge variant="secondary">
-              {posts.length} {posts.length === 1 ? 'post' : 'posts'}
+              {posts.length} {posts.length === 1 ? "post" : "posts"}
             </Badge>
           </div>
 
           {posts.length > 0 ? (
             <div className="space-y-6">
               {posts.map((post) => (
-                <Card key={post._id} className="hover:shadow-lg transition-shadow duration-300">
+                <Card
+                  key={post._id}
+                  className="hover:shadow-lg transition-shadow duration-300"
+                >
                   <CardContent className="p-6">
                     {/* Post Header */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage 
-                            src={user.profilePicture || defaultProfilePic} 
+                          <AvatarImage
+                            src={user.profilePicture || defaultProfilePic}
                             alt={user.username}
                           />
                           <AvatarFallback>
-                            {user.username?.charAt(0)?.toUpperCase() || 'U'}
+                            {user.username?.charAt(0)?.toUpperCase() || "U"}
                           </AvatarFallback>
                         </Avatar>
                         <div>
@@ -380,15 +427,19 @@ const Profile = () => {
                         size="sm"
                         onClick={() => handleLike(post._id)}
                         className={`${
-                          post.likes.some(like => like.user === currentUserId)
-                            ? 'text-red-600 hover:text-red-700'
-                            : 'text-gray-500 hover:text-red-500'
+                          post.likes.some((like) => like.user === currentUserId)
+                            ? "text-red-600 hover:text-red-700"
+                            : "text-gray-500 hover:text-red-500"
                         } transition-colors`}
                       >
-                        <Heart 
+                        <Heart
                           className={`w-4 h-4 mr-1 ${
-                            post.likes.some(like => like.user === currentUserId) ? 'fill-current' : ''
-                          }`} 
+                            post.likes.some(
+                              (like) => like.user === currentUserId,
+                            )
+                              ? "fill-current"
+                              : ""
+                          }`}
                         />
                         {post.likes.length}
                       </Button>
@@ -400,7 +451,9 @@ const Profile = () => {
                         className="text-gray-500 hover:text-blue-500 transition-colors"
                       >
                         <MessageCircle className="w-4 h-4 mr-1" />
-                        {expandedComments[post._id] ? 'Hide Comments' : 'View Comments'}
+                        {expandedComments[post._id]
+                          ? "Hide Comments"
+                          : "View Comments"}
                       </Button>
 
                       {currentUserId === post.user?._id && (
@@ -418,11 +471,11 @@ const Profile = () => {
                     {/* Comments Section */}
                     {expandedComments[post._id] && (
                       <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <CommentsSectionWrapper 
-                          postId={post._id} 
-                          onCommentAdded={handleCommentAdded} 
-                          onCommentDeleted={handleCommentDeleted} 
-                          currentUserId={currentUserId} 
+                        <CommentsSectionWrapper
+                          postId={post._id}
+                          onCommentAdded={handleCommentAdded}
+                          onCommentDeleted={handleCommentDeleted}
+                          currentUserId={currentUserId}
                         />
                       </div>
                     )}
@@ -440,7 +493,8 @@ const Profile = () => {
                   No posts yet
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400">
-                  @{user.username} hasn't shared anything under Big Brother's surveillance yet.
+                  @{user.username} hasn't shared anything under Big Brother's
+                  surveillance yet.
                 </p>
               </CardContent>
             </Card>
@@ -452,7 +506,12 @@ const Profile = () => {
 };
 
 // Helper component to manage comment state and fetching
-const CommentsSectionWrapper = ({ postId, onCommentAdded, onCommentDeleted, currentUserId }) => {
+const CommentsSectionWrapper = ({
+  postId,
+  onCommentAdded,
+  onCommentDeleted,
+  currentUserId,
+}) => {
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
 
@@ -462,7 +521,7 @@ const CommentsSectionWrapper = ({ postId, onCommentAdded, onCommentDeleted, curr
       const res = await axios.get(`/api/posts/${postId}/comments`);
       setComments(res.data);
     } catch (err) {
-      console.error('Error fetching comments:', err);
+      console.error("Error fetching comments:", err);
       setComments([]);
     } finally {
       setCommentsLoading(false);
@@ -474,12 +533,14 @@ const CommentsSectionWrapper = ({ postId, onCommentAdded, onCommentDeleted, curr
   }, [fetchComments]);
 
   const handleOptimisticCommentDelete = (deletedCommentId) => {
-    setComments(prevComments => prevComments.filter(comment => comment._id !== deletedCommentId));
+    setComments((prevComments) =>
+      prevComments.filter((comment) => comment._id !== deletedCommentId),
+    );
     onCommentDeleted();
   };
 
   const handleOptimisticCommentAdd = (newComment) => {
-    setComments(prevComments => [...prevComments, newComment]);
+    setComments((prevComments) => [...prevComments, newComment]);
     onCommentAdded(newComment);
   };
 
@@ -487,23 +548,25 @@ const CommentsSectionWrapper = ({ postId, onCommentAdded, onCommentDeleted, curr
     return (
       <div className="text-center py-4">
         <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin mx-auto mb-2" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Loading comments...
+        </p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <CommentList 
-        comments={comments} 
-        postId={postId} 
-        onCommentDeleted={handleOptimisticCommentDelete} 
-        currentUserId={currentUserId} 
+      <CommentList
+        comments={comments}
+        postId={postId}
+        onCommentDeleted={handleOptimisticCommentDelete}
+        currentUserId={currentUserId}
       />
       {currentUserId && (
-        <CommentInput 
-          postId={postId} 
-          onCommentAdded={handleOptimisticCommentAdd} 
+        <CommentInput
+          postId={postId}
+          onCommentAdded={handleOptimisticCommentAdd}
         />
       )}
     </div>

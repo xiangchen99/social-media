@@ -13,10 +13,12 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Add CORS middleware
-app.use(cors({
-  origin: ['http://localhost:3000', "https://bigbro.xiang-chen.com"],// Your frontend URL,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://bigbro.xiang-chen.com"], // Your frontend URL,
+    credentials: true,
+  }),
+);
 
 // Middleware for parsing JSON bodies
 app.use(express.json());
@@ -32,15 +34,15 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-  // Root route
-  app.get("/", (req, res) => {
-    res.send("Hello World");
-  });
+// Root route
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 
 // Use the authentication router for API routes
 app.use("/api/auth", authRouter);
 app.use("/api/posts", postsRouter); // Use the posts router
-app.use('/api/users', usersRouter);
+app.use("/api/users", usersRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

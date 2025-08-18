@@ -1,16 +1,16 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const LogoutButton = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Remove the JWT token
-    
+    localStorage.removeItem("token"); // Remove the JWT token
+
     // Dispatch custom event to notify App component
-    window.dispatchEvent(new Event('tokenChanged'));
-    
-    navigate('/login'); // Redirect to login page
+    window.dispatchEvent(new Event("tokenChanged"));
+
+    navigate("/login"); // Redirect to login page
     window.location.reload(); // Optional: force a refresh to clear all state
   };
 
@@ -18,13 +18,13 @@ const LogoutButton = () => {
     <button
       onClick={handleLogout}
       style={{
-        backgroundColor: '#f44336',
-        color: 'white',
-        padding: '8px 15px',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        fontSize: '1em'
+        backgroundColor: "#f44336",
+        color: "white",
+        padding: "8px 15px",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        fontSize: "1em",
       }}
     >
       Logout

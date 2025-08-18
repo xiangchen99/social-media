@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, Users, Shield, ArrowLeft, UserPlus } from 'lucide-react';
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Eye, Users, Shield, ArrowLeft, UserPlus } from "lucide-react";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
+    username: "",
+    email: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -23,21 +29,22 @@ const Register = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) setError(''); // Clear error when user starts typing
+    if (error) setError(""); // Clear error when user starts typing
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const res = await axios.post('/api/auth/register', formData);
-      console.log('Registration successful:', res.data.msg);
-      navigate('/login'); // Redirect to login page after successful registration
+      const res = await axios.post("/api/auth/register", formData);
+      console.log("Registration successful:", res.data.msg);
+      navigate("/login"); // Redirect to login page after successful registration
     } catch (err) {
       console.error(err);
-      const errorMessage = err.response?.data?.msg || 'An error occurred during registration';
+      const errorMessage =
+        err.response?.data?.msg || "An error occurred during registration";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -49,7 +56,11 @@ const Register = () => {
       <div className="w-full max-w-md">
         {/* Back to Home Button */}
         <div className="mb-6">
-          <Button asChild variant="ghost" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+          <Button
+            asChild
+            variant="ghost"
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          >
             <Link to="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -65,10 +76,10 @@ const Register = () => {
                 Join the Surveillance
               </Badge>
             </div>
-            
+
             <div>
               <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white">
-                Join{' '}
+                Join{" "}
                 <span className="bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
                   Big Brother
                 </span>
@@ -138,8 +149,8 @@ const Register = () => {
                 />
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-12 text-lg font-medium"
                 disabled={isLoading}
               >
@@ -159,9 +170,9 @@ const Register = () => {
 
             <div className="text-center space-y-4">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Already being watched?{' '}
-                <Link 
-                  to="/login" 
+                Already being watched?{" "}
+                <Link
+                  to="/login"
                   className="font-medium text-red-600 hover:text-red-500 transition-colors"
                 >
                   Enter the System
@@ -178,7 +189,8 @@ const Register = () => {
                       </p>
                     </div>
                     <p className="text-xs text-yellow-700 dark:text-yellow-300 text-center">
-                      By registering, you agree to our comprehensive monitoring and data collection practices.
+                      By registering, you agree to our comprehensive monitoring
+                      and data collection practices.
                     </p>
                   </CardContent>
                 </Card>
