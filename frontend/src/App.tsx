@@ -31,6 +31,8 @@ const App = () => {
   let currentUserId = null;
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [currentUsername, setCurrentUsername] = useState(null);
+  const [currentUserProfilePic, setCurrentUserProfilePic] = useState(null);
+
 
   // Listen for storage changes to update token state
   useEffect(() => {
@@ -60,12 +62,15 @@ const App = () => {
 
           const res = await axios.get(`/api/users/${userId}`);
           setCurrentUsername(res.data.username);
+          setCurrentUserProfilePic(res.data.profilePicture);
         } catch (error) {
           console.error("Error fetching current user:", error);
           setCurrentUsername(null);
+          setCurrentUserProfilePic(null);
         }
       } else {
         setCurrentUsername(null);
+        setCurrentUserProfilePic(null);
       }
     };
 
@@ -159,6 +164,7 @@ const App = () => {
                         className="relative h-8 w-8 rounded-full"
                       >
                         <Avatar className="h-8 w-8">
+                          <AvatarImage src={currentUserProfilePic} />
                           <AvatarFallback>
                             {currentUsername?.charAt(0)?.toUpperCase() || "U"}
                           </AvatarFallback>
