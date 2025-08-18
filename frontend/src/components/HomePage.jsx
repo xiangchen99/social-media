@@ -195,7 +195,7 @@ const HomePage = () => {
                                     Start Being Monitored
                                 </Link>
                             </Button>
-                            <Button asChild size="lg" variant="outline" className="text-lg px-8 py-6 text-white border-white hover:bg-white hover:text-slate-900">
+                            <Button asChild size="lg" variant="outline" className="text-lg px-8 py-6 text-amber-500 border-white hover:bg-white hover:text-slate-900">
                                 <Link to="/login">
                                     I Accept Surveillance
                                 </Link>
