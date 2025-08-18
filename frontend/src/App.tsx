@@ -29,8 +29,8 @@ axios.defaults.baseURL = "https://social-media-chi-black.vercel.app";
 
 const App = () => {
   let currentUserId = null;
-  let currentUsername = null;
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [currentUsername, setCurrentUsername] = useState(null);
 
   // Listen for storage changes to update token state
   useEffect(() => {
@@ -50,12 +50,33 @@ const App = () => {
     };
   }, []);
 
+  // Fetch current user details when token changes
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (token) {
+        try {
+          const decodedToken = JSON.parse(atob(token.split('.')[1]));
+          const userId = decodedToken.user.id;
+          
+          const res = await axios.get(`/api/users/${userId}`);
+          setCurrentUsername(res.data.username);
+        } catch (error) {
+          console.error("Error fetching current user:", error);
+          setCurrentUsername(null);
+        }
+      } else {
+        setCurrentUsername(null);
+      }
+    };
+
+    fetchCurrentUser();
+  }, [token]);
+
   if (token) {
     try {
-      // Decode the token to get the user ID and username
+      // Decode the token to get the user ID
       const decodedToken = JSON.parse(atob(token.split('.')[1]));
       currentUserId = decodedToken.user.id;
-      currentUsername = decodedToken.user.username;
     } catch (error) {
       console.error("Error decoding token:", error);
       // Handle invalid token, e.g., clear it from localStorage

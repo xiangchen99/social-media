@@ -1,15 +1,15 @@
-import express from "express";
-import Post from "../models/Post.js";
-import auth from "../middleware/auth.js"; // Import the middleware
-import Comment from "../models/Comment.js"; // Import the Comment model
+import express from 'express';
+import Post from '../models/Post.js';
 import User from '../models/User.js';
+import Comment from '../models/Comment.js';
+import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
 // @route   POST /api/posts
 // @desc    Create a post
 // @access  Private
-router.post("/", auth, async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
     const newPost = new Post({
       text: req.body.text,
@@ -17,10 +17,12 @@ router.post("/", auth, async (req, res) => {
     });
 
     const post = await newPost.save();
+    // Populate user details including profilePicture for the response
+    await post.populate('user', 'username profilePicture'); // <-- Updated here
     res.json(post);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send('Server Error');
   }
 });
 
@@ -30,9 +32,13 @@ router.post("/", auth, async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const posts = await Post.find()
-      .populate('user', 'username') // 'user' is the field, 'username' is what to retrieve
+      .populate('user', 'username profilePicture') // <-- Updated here
+      .populate({
+        path: 'likes.user',
+        select: 'username'
+      })
       .sort({ createdAt: -1 });
-      
+
     res.json(posts);
   } catch (err) {
     console.error(err.message);
@@ -40,6 +46,9 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @route   PUT /api/posts/like/:id
+// @desc    Like or unlike a post
+// @access  Private
 router.put('/like/:id', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -67,6 +76,9 @@ router.put('/like/:id', auth, async (req, res) => {
   }
 });
 
+// @route   DELETE /api/posts/:id
+// @desc    Delete a post
+// @access  Private
 router.delete('/:id', auth, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -81,7 +93,9 @@ router.delete('/:id', auth, async (req, res) => {
     }
 
     await Post.deleteOne({ _id: req.params.id });
-    res.json({ msg: 'Post removed' });
+    // Also delete all comments associated with this post
+    await Comment.deleteMany({ post: req.params.id });
+    res.json({ msg: 'Post and associated comments removed' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -94,7 +108,11 @@ router.delete('/:id', auth, async (req, res) => {
 router.get('/user/:user_id', async (req, res) => {
   try {
     const posts = await Post.find({ user: req.params.user_id })
-      .populate('user', 'username')
+      .populate('user', 'username profilePicture') // <-- Updated here as well for consistency
+      .populate({
+        path: 'likes.user',
+        select: 'username'
+      })
       .sort({ createdAt: -1 });
 
     if (!posts) {
@@ -107,6 +125,8 @@ router.get('/user/:user_id', async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
+// ------------------- Comment Routes -------------------
 
 // @route   POST /api/posts/:post_id/comments
 // @desc    Add a comment to a post
@@ -172,5 +192,6 @@ router.delete('/:post_id/comments/:comment_id', auth, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
 
 export default router;

@@ -18,6 +18,9 @@ const Feed = () => {
   const currentUserId = localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).user.id : null;
   const [expandedComments, setExpandedComments] = useState({});
 
+  // Default profile picture URL
+  const defaultProfilePic = 'https://img.freepik.com/premium-vector/avatar-profile-icon-flat-style-female-user-profile-vector-illustration-isolated-background-women-profile-sign-business-concept_157943-38866.jpg?w=360';
+
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -163,7 +166,7 @@ const Feed = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button asChild variant="ghost" size="sm">
-                <Link to="/">
+                <Link to="/homepage">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Home
                 </Link>
@@ -221,8 +224,13 @@ const Feed = () => {
                   {/* Post Header */}
                   {post.user && (
                     <div className="flex items-center mb-4">
-                      <Avatar className="w-10 h-10 mr-3">
-                        <AvatarFallback>
+                      <Avatar className="w-10 h-10 mr-3 ring-2 ring-gray-200 dark:ring-gray-700">
+                        <AvatarImage 
+                          src={post.user.profilePicture || defaultProfilePic} 
+                          alt={`@${post.user.username}`}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
                           {post.user.username?.charAt(0)?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
