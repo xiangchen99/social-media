@@ -210,7 +210,10 @@ const Feed = () => {
             </div>
             <p className="text-yellow-700 dark:text-yellow-300">
               🎉 Congratulations! You've successfully logged into Big Brother Social Media. 
-              This is the hidden message I promised you on the homepage. Welcome to the surveillance state! 👁️
+              This is the hidden message I promised you on the homepage: 
+            </p>
+            <p className="mt-2 text-yellow-800 dark:text-yellow-200 font-semibold">
+                "Do you ever feel like a plastic bag?"
             </p>
           </CardContent>
         </Card>
