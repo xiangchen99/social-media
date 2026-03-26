@@ -23,16 +23,21 @@ import "../styles/globals.css";
 
 // Configure Axios base URL
 import axios from "axios";
-axios.defaults.baseURL = "https://social-media-chi-black.vercel.app";
-// If you are running the backend locally, you can uncomment the line below
-//axios.defaults.baseURL = "http://localhost:3001"; // Use this for local
+
+const apiBaseUrl =
+  process.env.BUN_PUBLIC_API_URL ||
+  (typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)
+    ? "http://localhost:3001"
+    : "https://social-media-chi-black.vercel.app");
+
+axios.defaults.baseURL = apiBaseUrl;
 
 const App = () => {
   let currentUserId = null;
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [currentUsername, setCurrentUsername] = useState(null);
   const [currentUserProfilePic, setCurrentUserProfilePic] = useState(null);
-
 
   // Listen for storage changes to update token state
   useEffect(() => {
