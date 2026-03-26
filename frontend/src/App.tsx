@@ -24,12 +24,13 @@ import "../styles/globals.css";
 // Configure Axios base URL
 import axios from "axios";
 
-const apiBaseUrl =
-  process.env.BUN_PUBLIC_API_URL ||
-  (typeof window !== "undefined" &&
-  ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname)
-    ? "http://localhost:3001"
-    : "https://social-media-chi-black.vercel.app");
+const isLocalhost =
+  typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+
+const apiBaseUrl = isLocalhost
+  ? "http://localhost:3001"
+  : globalThis.process?.env?.BUN_PUBLIC_API_URL || "";
 
 axios.defaults.baseURL = apiBaseUrl;
 
